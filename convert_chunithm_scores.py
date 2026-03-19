@@ -13,8 +13,59 @@ def setup_encoding():
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
-def read_csv_file(csv_path: str) -> List[Dict[str, Any]]:
+def detect_csv_format(csv_path: str) -> str:
+    """检测CSV文件格式"""
+    try:
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            # 读取前几行来检测格式
+            lines = []
+            for _ in range(5):
+                line = f.readline()
+                if not line:
+                    break
+                lines.append(line.strip())
+            
+            if not lines:
+                return "unknown"
+            
+            # 检查列名来确定格式
+            header = lines[0].lower()
+            
+            # 检查是否是"水鱼"格式
+            if '排名' in header or '乐曲名' in header or '难度' in header:
+                return "shuiyu"
+            
+            # 检查是否是"落雪"格式
+            elif 'id' in header or 'song_name' in header or 'level_index' in header:
+                return "luoxue"
+            
+            # 默认格式
+            else:
+                return "unknown"
+                
+    except Exception as e:
+        print(f"检测CSV格式时出错: {e}")
+        return "unknown"
+
+def read_csv_file(csv_path: str, format_type: str = "auto") -> List[Dict[str, Any]]:
     """读取CSV文件并解析数据"""
+    
+    # 自动检测格式
+    if format_type == "auto":
+        format_type = detect_csv_format(csv_path)
+        print(f"检测到CSV格式: {format_type}")
+    
+    if format_type == "shuiyu":
+        return read_shuiyu_csv(csv_path)
+    elif format_type == "luoxue":
+        return read_luoxue_csv(csv_path)
+    else:
+        print(f"错误: 不支持的CSV格式: {format_type}")
+        print("请使用 --format 参数指定格式: shuiyu 或 luoxue")
+        sys.exit(1)
+
+def read_luoxue_csv(csv_path: str) -> List[Dict[str, Any]]:
+    """读取落雪格式的CSV文件"""
     scores = []
     
     try:
@@ -58,15 +109,123 @@ def read_csv_file(csv_path: str) -> List[Dict[str, Any]]:
                     print(f"警告: 第{row_num}行数据解析错误: {e}")
                     continue
         
-        print(f"成功读取 {len(scores)} 条分数记录")
+        print(f"成功读取 {len(scores)} 条落雪格式分数记录")
         return scores
         
-    except FileNotFoundError:
-        print(f"错误: 找不到文件 {csv_path}")
-        sys.exit(1)
     except Exception as e:
-        print(f"读取CSV文件时发生错误: {str(e)}")
+        print(f"读取落雪格式CSV文件时发生错误: {str(e)}")
         sys.exit(1)
+
+def read_shuiyu_csv(csv_path: str) -> List[Dict[str, Any]]:
+    """读取水鱼格式的CSV文件"""
+    scores = []
+    
+    try:
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            # 水鱼格式使用逗号分隔
+            reader = csv.DictReader(f)
+            
+            for row_num, row in enumerate(reader, 1):
+                try:
+                    # 解析难度字符串，提取级别和难度索引
+                    level_str = str(row['难度']).strip()
+                    
+                    # 处理难度级别
+                    level = level_str
+                    
+                    # 将难度转换为level_index
+                    # 水鱼格式的难度需要映射到level_index
+                    # 基本规则: 数字 -> BASIC/ADVANCED, 数字+ -> EXPERT/MASTER
+                    level_index = 0  # 默认BASIC
+                    
+                    if '+' in level_str:
+                        # 有+的通常是EXPERT或MASTER
+                        base_level = level_str.replace('+', '')
+                        try:
+                            level_num = float(base_level)
+                            if level_num >= 10:
+                                level_index = 3  # MASTER
+                            else:
+                                level_index = 2  # EXPERT
+                        except:
+                            level_index = 2  # EXPERT
+                    else:
+                        # 没有+的通常是BASIC或ADVANCED
+                        try:
+                            level_num = float(level_str)
+                            if level_num >= 7:
+                                level_index = 1  # ADVANCED
+                            else:
+                                level_index = 0  # BASIC
+                        except:
+                            level_index = 0  # BASIC
+                    
+                    # 根据分数计算rank
+                    score = int(row['分数'])
+                    rank = calculate_rank_from_score(score)
+                    
+                    # 根据分数判断是否clear (假设分数>0就是clear)
+                    clear_status = "clear" if score > 0 else "failed"
+                    
+                    # 转换数据类型
+                    score_data = {
+                        'id': row_num,  # 水鱼格式没有id，使用行号
+                        'song_name': row['乐曲名'],
+                        'level': level_str,
+                        'level_index': level_index,
+                        'score': score,
+                        'rating': float(row['Rating']),
+                        'over_power': 0.0,  # 水鱼格式没有over_power
+                        'clear': clear_status,
+                        'full_combo': '',  # 水鱼格式没有full_combo信息
+                        'full_chain': '',  # 水鱼格式没有full_chain信息
+                        'rank': rank,
+                        'upload_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'play_time': ''  # 水鱼格式没有play_time
+                    }
+                    scores.append(score_data)
+                except (KeyError, ValueError) as e:
+                    print(f"警告: 第{row_num}行数据解析错误: {e}")
+                    print(f"行数据: {row}")
+                    continue
+        
+        print(f"成功读取 {len(scores)} 条水鱼格式分数记录")
+        return scores
+        
+    except Exception as e:
+        print(f"读取水鱼格式CSV文件时发生错误: {str(e)}")
+        sys.exit(1)
+
+def calculate_rank_from_score(score: int) -> str:
+    """根据分数计算等级"""
+    if score >= 1009000:
+        return "sssp"
+    elif score >= 1007500:
+        return "sss"
+    elif score >= 1005000:
+        return "ssp"
+    elif score >= 1000000:
+        return "ss"
+    elif score >= 990000:
+        return "sp"
+    elif score >= 975000:
+        return "s"
+    elif score >= 950000:
+        return "aaa"
+    elif score >= 925000:
+        return "aa"
+    elif score >= 900000:
+        return "a"
+    elif score >= 800000:
+        return "bbb"
+    elif score >= 700000:
+        return "bb"
+    elif score >= 600000:
+        return "b"
+    elif score >= 500000:
+        return "c"
+    else:
+        return "d"
 
 def convert_rank_to_score_rank(rank: str) -> int:
     """将字母等级转换为数字scoreRank"""
@@ -426,16 +585,18 @@ def main():
     """主函数"""
     setup_encoding()
     
-    parser = argparse.ArgumentParser(description='将chunithm-scores.csv转换为MuNET Chunithm Export格式')
+    parser = argparse.ArgumentParser(description='将Chunithm CSV分数数据转换为MuNET Chunithm Export格式')
     parser.add_argument('--input', '-i', default='chunithm-scores.csv', help='输入CSV文件路径 (默认: chunithm-scores.csv)')
     parser.add_argument('--output', '-o', help='输出JSON文件路径 (默认: 自动生成)')
     parser.add_argument('--username', '-u', default='Apple中二痴', help='用户名 (默认: Apple中二痴)')
+    parser.add_argument('--format', '-f', default='auto', choices=['auto', 'luoxue', 'shuiyu'], 
+                       help='CSV文件格式: auto(自动检测), luoxue(落雪格式), shuiyu(水鱼格式) (默认: auto)')
     parser.add_argument('--verbose', '-v', action='store_true', help='显示详细输出')
     
     args = parser.parse_args()
     
     print("=" * 60)
-    print("Chunithm CSV 到 MuNET 转换工具")
+    print("Chunithm CSV 到 MuNET JSON 转换工具")
     print("=" * 60)
     
     # 设置输出文件路径
@@ -448,11 +609,12 @@ def main():
     print(f"输入文件: {args.input}")
     print(f"输出文件: {output_path}")
     print(f"用户名: {args.username}")
+    print(f"格式: {args.format}")
     print("-" * 60)
     
     try:
         # 读取CSV数据
-        csv_scores = read_csv_file(args.input)
+        csv_scores = read_csv_file(args.input, args.format)
         
         if not csv_scores:
             print("错误: 没有读取到有效的分数数据")
