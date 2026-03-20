@@ -1,117 +1,122 @@
-# Chunithm CSV 到 MuNET JSON 转换工具
+# Chunithm 到 MuNET JSON 转换工具
 
 ## 简介
 
-这个Python脚本可以将 *水鱼* *落雪* 的Chunithm CSV数据数据转换为MuNET可导入的JSON文件。
+将 Chunithm 成绩数据转换为 MuNET 可导入的 JSON 文件。
 
-### 支持的格式
+统一入口：`python main.py <子命令> [参数]`
 
-1. [落雪](https://maimai.lxns.net/)
-2. [水鱼](https://maimai.diving-fish.com/)
-## 使用方法
+| 子命令 | 数据来源 |
+|--------|----------|
+| `api` | 从 [落雪](https://maimai.lxns.net/) / [水鱼](https://maimai.diving-fish.com/) API 在线获取 |
+| `csv` | 从本地 CSV 文件转换（落雪/水鱼导出） |
 
-### 基本用法
-```bash
-python convert_chunithm_scores.py
+---
+
+## 环境配置
+
+在项目根目录创建 `.env` 文件（仅 API 开发者模式需要）：
+
+```env
+LXNS_DEVELOPER_TOKEN=           # 落雪开发者令牌
+SHUIYU_DEVELOPER_TOKEN=         # 水鱼开发者令牌
 ```
 
-### 带参数用法
+### 令牌获取方式
+
+| 令牌 | 获取方式 |
+|------|----------|
+| 落雪个人令牌 | 登录 [落雪](https://maimai.lxns.net/) → 个人设置，通过 `--lxns-token` 传入 |
+| `LXNS_DEVELOPER_TOKEN` | 在落雪平台申请开发者权限 |
+| 水鱼 Import-Token | 登录 [水鱼查分器](https://www.diving-fish.com/maimaidx/prober/) → 编辑个人资料 → 生成，通过 `--shuiyu-import-token` 传入 |
+| `SHUIYU_DEVELOPER_TOKEN` | 在水鱼查分器申请开发者权限 |
+
+---
+
+## 快速开始
+
 ```bash
-# 指定输入文件
-python convert_chunithm_scores.py --input my_scores.csv
+# 查看帮助
+python main.py --help
+python main.py api --help
+python main.py csv --help
+
+# API - 落雪个人模式
+python main.py api -m lxns --lxns-token YOUR_TOKEN
+
+# API - 落雪开发者模式
+python main.py api -m lxns-dev --lxns-friend-code 1234567890
+
+# API - 水鱼个人模式
+python main.py api -m shuiyu --shuiyu-import-token YOUR_TOKEN
+
+# API - 水鱼开发者模式
+python main.py api -m shuiyu-dev --shuiyu-username "用户名"
+
+# CSV - 自动检测格式
+python main.py csv -i scores.csv
+
+# CSV - 指定格式
+python main.py csv -i scores.csv -f shuiyu -u "玩家名"
 
 # 指定输出文件
-python convert_chunithm_scores.py --output output.json
-
-# 指定用户名
-python convert_chunithm_scores.py --username "玩家名称"
-
-# 指定CSV格式 (auto/luoxue/shuiyu)
-python convert_chunithm_scores.py --format shuiyu
-
-# 显示详细输出
-python convert_chunithm_scores.py --verbose
-
-# 完整使用 - 水鱼格式
-python convert_chunithm_scores.py --input 水鱼.csv --format shuiyu --username "水鱼玩家" --verbose
-
-# 完整使用 - 落雪格式
-python convert_chunithm_scores.py --input chunithm-scores.csv --format luoxue --username "落雪玩家" --verbose
+python main.py api -m lxns --lxns-token YOUR_TOKEN -o my_export.json
 ```
 
-### 查看帮助
-```bash
-python convert_chunithm_scores.py --help
-```
+---
 
-## 转换规则
+## API 子命令
 
-### 通用规则
-1. **音乐详情去重**: 同一音乐同一难度只保留最高分
-2. **游玩次数统计**: 统计每个音乐每个难度的游玩次数
-3. **等级转换**:
-   - D/C/B → scoreRank 0/1/2
-   - A/AA/AAA → scoreRank 3
-   - S/SP/SS/SSP → scoreRank 4
-   - SSS/SSSP → scoreRank 5
-4. **时间格式**: 将CSV中的时间转换为ISO 8601格式
+### 模式
 
-### 落雪格式特有
-1. **通关状态**: 直接使用CSV中的clear字段
-2. **Full Combo**: 直接使用CSV中的full_combo字段
-3. **游玩记录**: 包含完整的游玩记录
+| 模式 | 数据源 | 认证方式 | 说明 |
+|------|--------|----------|------|
+| `lxns` | 落雪 | `--lxns-token` | 获取自己的全部成绩 |
+| `lxns-dev` | 落雪 | `.env` + `--lxns-friend-code` | 通过好友码获取他人数据 |
+| `shuiyu` | 水鱼 | `--shuiyu-import-token` | 获取自己的全部成绩 |
+| `shuiyu-dev` | 水鱼 | `.env` + `--shuiyu-username` | 获取指定用户成绩 |
 
-### 水鱼格式特有
-1. **通关状态**: 根据分数自动判断 (分数>0 = clear)
-2. **等级计算**: 根据分数自动计算rank等级
-3. **难度映射**: 自动将难度字符串映射到level_index （不准确，之后要同步曲库完善）
-   - 数字 (如5, 7) → BASIC/ADVANCED
-   - 数字+ (如8+, 12+) → EXPERT/MASTER
-4. **游玩记录**: 不生成游玩记录 (缺少时间信息)
+### 参数
 
-## 输出文件结构
+| 参数 | 缩写 | 说明 |
+|------|------|------|
+| `--mode` | `-m` | **必填**，模式：`lxns` / `lxns-dev` / `shuiyu` / `shuiyu-dev` |
+| `--output` | `-o` | 输出文件路径（默认: `chunithm_munet_export.json`） |
+| `--test` | | 测试模式，只处理前 10 条 |
+| `--lxns-token` | | 落雪个人令牌 |
+| `--lxns-developer-token` | | 落雪开发者令牌 |
+| `--lxns-friend-code` | | 好友码 |
+| `--shuiyu-import-token` | | 水鱼 Import-Token |
+| `--shuiyu-developer-token` | | 水鱼 Developer-Token |
+| `--shuiyu-username` | | 水鱼用户名 |
 
-生成的JSON文件包含以下主要部分:
+### 水鱼 API 注意
 
-1. `userData`: 用户基本信息
-2. `userGameOption`: 游戏设置
-3. `userMusicDetailList`: 音乐详情列表
-4. `userPlaylogList`: 游玩记录列表 (所有记录)
+- 缺少 `over_power`、`full_chain`、`play_time` 字段，使用默认值
+- 不生成 `userPlaylogList`
 
-## 示例
+---
 
-```bash
-# 转换默认的chunithm-scores.csv文件
-python convert_chunithm_scores.py
+## CSV 子命令
 
-# 转换后生成的文件
-# MuNET Chunithm Export - Apple - YYYY-MM-DD HH-MM-SS.json
-```
+### 参数
 
-## 注意事项
+| 参数 | 缩写 | 说明 |
+|------|------|------|
+| `--input` | `-i` | 输入 CSV 文件路径（默认: `chunithm-scores.csv`） |
+| `--output` | `-o` | 输出 JSON 文件路径（默认: 自动生成） |
+| `--username` | `-u` | 用户名（默认: `Player`） |
+| `--format` | `-f` | CSV 格式：`auto` / `lxns` / `shuiyu`（默认: `auto`） |
 
-### 通用注意事项
-1. CSV文件必须使用 UTF-8 编码
-2. 脚本会自动检测CSV分隔符 (逗号、分号、制表符)
-3. 脚本会计算总分数并更新到userData中
-
-### 落雪格式注意事项
-1. 如果play_time字段为空，不会生成对应的游玩记录
-2. 需要完整的字段信息才能生成完整的MuNET数据
-
-### 水鱼格式注意事项
-1. 不包含游玩时间信息，因此不会生成游玩记录
-2. 不包含音乐ID，会自动使用行号作为musicId
-3. 不包含clear状态，会根据分数自动判断
-4. 不包含rank等级，会根据分数自动计算
-5. 难度级别需要正确映射到level_index
+---
 
 ## 依赖
 
-- Python 3.6+
-- 标准库: json, csv, datetime, argparse
+- Python 3.8+
+- `requests`
 
 ## 故障排除
 
-1. **文件不存在**: 检查输入文件路径是否正确
-2. **格式错误**: 检查CSV文件格式是否符合要求
+1. **API 认证失败**: 检查令牌是否正确
+2. **水鱼 400**: Import-Token 有误或用户不存在
+3. **CSV 格式错误**: 确保 UTF-8 编码

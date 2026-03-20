@@ -4,17 +4,10 @@ import os
 import sys
 from datetime import datetime
 from typing import Dict, List, Any, Optional
-import argparse
 
-def setup_encoding():
-    """设置编码"""
-    if sys.platform == 'win32':
-        import io
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+from chunithm_api_converter import calculate_rank_from_score
 
 def detect_csv_format(csv_path: str) -> str:
-    """检测CSV文件格式"""
     try:
         with open(csv_path, 'r', encoding='utf-8') as f:
             # 读取前几行来检测格式
@@ -37,7 +30,7 @@ def detect_csv_format(csv_path: str) -> str:
             
             # 检查是否是"落雪"格式
             elif 'id' in header or 'song_name' in header or 'level_index' in header:
-                return "luoxue"
+                return "lxns"
             
             # 默认格式
             else:
@@ -48,7 +41,6 @@ def detect_csv_format(csv_path: str) -> str:
         return "unknown"
 
 def read_csv_file(csv_path: str, format_type: str = "auto") -> List[Dict[str, Any]]:
-    """读取CSV文件并解析数据"""
     
     # 自动检测格式
     if format_type == "auto":
@@ -57,15 +49,14 @@ def read_csv_file(csv_path: str, format_type: str = "auto") -> List[Dict[str, An
     
     if format_type == "shuiyu":
         return read_shuiyu_csv(csv_path)
-    elif format_type == "luoxue":
-        return read_luoxue_csv(csv_path)
+    elif format_type == "lxns":
+        return read_lxns_csv(csv_path)
     else:
         print(f"错误: 不支持的CSV格式: {format_type}")
-        print("请使用 --format 参数指定格式: shuiyu 或 luoxue")
+        print("请使用 --format 参数指定格式: shuiyu 或 lxns")
         sys.exit(1)
 
-def read_luoxue_csv(csv_path: str) -> List[Dict[str, Any]]:
-    """读取落雪格式的CSV文件"""
+def read_lxns_csv(csv_path: str) -> List[Dict[str, Any]]:
     scores = []
     
     try:
@@ -117,7 +108,6 @@ def read_luoxue_csv(csv_path: str) -> List[Dict[str, Any]]:
         sys.exit(1)
 
 def read_shuiyu_csv(csv_path: str) -> List[Dict[str, Any]]:
-    """读取水鱼格式的CSV文件"""
     scores = []
     
     try:
@@ -196,39 +186,7 @@ def read_shuiyu_csv(csv_path: str) -> List[Dict[str, Any]]:
         print(f"读取水鱼格式CSV文件时发生错误: {str(e)}")
         sys.exit(1)
 
-def calculate_rank_from_score(score: int) -> str:
-    """根据分数计算等级"""
-    if score >= 1009000:
-        return "sssp"
-    elif score >= 1007500:
-        return "sss"
-    elif score >= 1005000:
-        return "ssp"
-    elif score >= 1000000:
-        return "ss"
-    elif score >= 990000:
-        return "sp"
-    elif score >= 975000:
-        return "s"
-    elif score >= 950000:
-        return "aaa"
-    elif score >= 925000:
-        return "aa"
-    elif score >= 900000:
-        return "a"
-    elif score >= 800000:
-        return "bbb"
-    elif score >= 700000:
-        return "bb"
-    elif score >= 600000:
-        return "b"
-    elif score >= 500000:
-        return "c"
-    else:
-        return "d"
-
 def convert_rank_to_score_rank(rank: str) -> int:
-    """将字母等级转换为数字scoreRank"""
     rank = str(rank).lower().strip()
     
     rank_mapping = {
@@ -243,7 +201,6 @@ def convert_rank_to_score_rank(rank: str) -> int:
     return rank_mapping.get(rank, 2)
 
 def convert_clear_status(clear: str) -> int:
-    """转换clear状态到isSuccess"""
     clear = str(clear).lower().strip()
     
     if clear == 'clear':
@@ -253,138 +210,86 @@ def convert_clear_status(clear: str) -> int:
     else:
         return 0
 
-def parse_level_string(level_str: str) -> tuple:
-    """解析级别字符串"""
-    level_str = str(level_str).strip()
-    
-    if '+' in level_str:
-        base_level = level_str.replace('+', '')
-        try:
-            return (int(base_level), True)
-        except ValueError:
-            return (1, False)
-    else:
-        try:
-            return (int(level_str), False)
-        except ValueError:
-            return (1, False)
-
-def create_munet_json_template(username: str = "Apple中二痴") -> Dict[str, Any]:
-    """创建MuNET JSON模板"""
+def create_munet_json_template(username: str = "Player") -> Dict[str, Any]:
     
     return {
         "gameId": "SDHD",
         "userData": {
             "userName": username,
-            "level": 2,
+            "level": 0,
             "reincarnationNum": 0,
-            "exp": "7000",
-            "point": 6000,
-            "totalPoint": 844424930137968,
-            "playCount": 10,
+            "exp": "0",
+            "point": 0,
+            "totalPoint": 0,
+            "playCount": 0,
             "multiPlayCount": 0,
-            "playerRating": 164,
-            "highestRating": 273,
-            "nameplateId": 2,
-            "frameId": 3,
-            "characterId": 9890,
-            "trophyId": 887,
-            "playedTutorialBit": 1,
-            "firstTutorialCancelNum": 1,
+            "playerRating": 0,
+            "highestRating": 0,
+            "nameplateId": 0,
+            "frameId": 0,
+            "characterId": 0,
+            "trophyId": 0,
+            "playedTutorialBit": 0,
+            "firstTutorialCancelNum": 0,
             "masterTutorialCancelNum": 0,
-            "totalMapNum": 214,
-            "totalHiScore": 20107964,
+            "totalMapNum": 0,
+            "totalHiScore": 0,
             "totalBasicHighScore": 0,
-            "totalAdvancedHighScore": 13445181,
-            "totalExpertHighScore": 5067151,
-            "totalMasterHighScore": 1595632,
+            "totalAdvancedHighScore": 0,
+            "totalExpertHighScore": 0,
+            "totalMasterHighScore": 0,
             "totalUltimaHighScore": 0,
             "eventWatchedDate": "1970-01-01T09:00:00",
-            "friendCount": 1,
+            "friendCount": 0,
             "firstGameId": "SDHD",
-            "firstRomVersion": "2.27.00",
-            "firstDataVersion": "2.25.13",
-            "firstPlayDate": "2025-02-07T04:59:37",
+            "firstRomVersion": "",
+            "firstDataVersion": "",
+            "firstPlayDate": "",
             "lastGameId": "SDHD",
-            "lastRomVersion": "2.30.00",
-            "lastDataVersion": "2.30.11",
-            "lastPlayDate": "2025-04-05T23:55:35",
-            "lastPlaceId": 291,
+            "lastRomVersion": "",
+            "lastDataVersion": "",
+            "lastPlayDate": "",
+            "lastPlaceId": 0,
             "lastPlaceName": "",
-            "lastRegionId": "1",
-            "lastRegionName": "W",
+            "lastRegionId": "0",
+            "lastRegionName": "",
             "lastAllNetId": "0",
-            "lastCountryCode": "JPN",
+            "lastCountryCode": "",
             "userNameEx": "",
             "compatibleCmVersion": "",
             "medal": 0,
-            "mapIconId": 1,
-            "voiceId": 1,
-            "avatarWear": 6106201,
-            "avatarHead": 3200101,
-            "avatarFace": 3300101,
-            "avatarSkin": 3400101,
-            "avatarItem": 3500101,
-            "avatarFront": 3600101,
-            "avatarBack": 3700101,
+            "mapIconId": 0,
+            "voiceId": 0,
+            "avatarWear": 0,
+            "avatarHead": 0,
+            "avatarFace": 0,
+            "avatarSkin": 0,
+            "avatarItem": 0,
+            "avatarFront": 0,
+            "avatarBack": 0,
             "trophyIdSub1": 0,
             "trophyIdSub2": 0,
             "banState": 0,
-            "totalScore": 20107964,
-            "accessCode": "1875462282",
+            "totalScore": 0,
+            "accessCode": "0",
             "isNetBattleHost": False
         },
         "userGameOption": {
-            "bgInfo": 1,
-            "fieldColor": 5,
-            "guideSound": 5,
-            "soundEffect": 5,
-            "guideLine": 3,
-            "speed": 21,
-            "optionSet": 3,
-            "matching": 1,
-            "judgePos": 1,
-            "rating": 1,
-            "judgeCritical": 1,
-            "judgeJustice": 1,
-            "judgeAttack": 1,
-            "headphone": 0,
-            "playerLevel": 1,
-            "successTap": 5,
-            "successExTap": 5,
-            "successSlideHold": 5,
-            "successAir": 5,
-            "successFlick": 5,
-            "successSkill": 5,
-            "successTapTimbre": 0,
-            "privacy": 0,
-            "mirrorFumen": 0,
-            "selectMusicFilterLv": 29,
-            "sortMusicFilterLv": 0,
-            "sortMusicGenre": 0,
-            "categoryDetail": 0,
-            "judgeTimingOffset": 20,
-            "playTimingOffset": 20,
-            "fieldWallPosition": 0,
-            "resultVoiceShort": 0,
-            "notesThickness": 0,
-            "judgeAppendSe": 0,
-            "trackSkip": 0,
-            "hardJudge": 0,
-            "speed_120": 21,
-            "fieldWallPosition_120": 0,
-            "playTimingOffset_120": 22,
-            "judgeTimingOffset_120": 19,
-            "ext1": 0,
-            "ext2": 0,
-            "ext3": 0,
-            "ext4": 0,
-            "ext5": 0,
-            "ext6": 0,
-            "ext7": 0,
-            "ext8": 0,
-            "ext9": 0,
-            "ext10": 0
+            "bgInfo": 0, "fieldColor": 0, "guideSound": 0, "soundEffect": 0,
+            "guideLine": 0, "speed": 0, "optionSet": 0, "matching": 0,
+            "judgePos": 0, "rating": 0, "judgeCritical": 0, "judgeJustice": 0,
+            "judgeAttack": 0, "headphone": 0, "playerLevel": 0,
+            "successTap": 0, "successExTap": 0, "successSlideHold": 0,
+            "successAir": 0, "successFlick": 0, "successSkill": 0,
+            "successTapTimbre": 0, "privacy": 0, "mirrorFumen": 0,
+            "selectMusicFilterLv": 0, "sortMusicFilterLv": 0, "sortMusicGenre": 0,
+            "categoryDetail": 0, "judgeTimingOffset": 0, "playTimingOffset": 0,
+            "fieldWallPosition": 0, "resultVoiceShort": 0, "notesThickness": 0,
+            "judgeAppendSe": 0, "trackSkip": 0, "hardJudge": 0,
+            "speed_120": 0, "fieldWallPosition_120": 0,
+            "playTimingOffset_120": 0, "judgeTimingOffset_120": 0,
+            "ext1": 0, "ext2": 0, "ext3": 0, "ext4": 0, "ext5": 0,
+            "ext6": 0, "ext7": 0, "ext8": 0, "ext9": 0, "ext10": 0,
         },
         "userActivityList": [],
         "userCharacterList": [],
@@ -392,12 +297,11 @@ def create_munet_json_template(username: str = "Apple中二痴") -> Dict[str, An
         "userMapList": [],
         "userMusicDetailList": [],
         "userCourseList": [],
-        "userRatingList": [],
         "userChargeList": [],
         "userPlaylogList": []
     }
 
-def convert_csv_to_munet(csv_scores: List[Dict[str, Any]], username: str = "Apple中二痴") -> Dict[str, Any]:
+def convert_csv_to_munet(csv_scores: List[Dict[str, Any]], username: str = "Player") -> Dict[str, Any]:
     """将CSV分数转换为MuNET格式"""
     munet_data = create_munet_json_template(username)
     
@@ -498,10 +402,10 @@ def convert_csv_to_munet(csv_scores: List[Dict[str, Any]], username: str = "Appl
             sort_number = 1700000000 + i
         
         playlog = {
-            "romVersion": "2.30.00",
+            "romVersion": "",
             "orderId": i,
             "sortNumber": sort_number,
-            "placeId": 291,
+            "placeId": 0,
             "playDate": play_date.split('T')[0] + "T00:00:00",
             "userPlayDate": play_date,
             "musicId": score['id'],
@@ -535,21 +439,21 @@ def convert_csv_to_munet(csv_scores: List[Dict[str, Any]], username: str = "Appl
             "judgeCritical": 0,
             "judgeHeaven": 0,
             "eventId": 0,
-            "playerRating": 164,
+            "playerRating": 0,
             "fullChainKind": 0,
-            "characterId": 9890,
-            "charaIllustId": 9890,
-            "skillId": 103000,
+            "characterId": 0,
+            "charaIllustId": 0,
+            "skillId": 0,
             "playKind": 0,
-            "skillLevel": 1,
-            "skillEffect": 1494,
+            "skillLevel": 0,
+            "skillEffect": 0,
             "placeName": "",
-            "commonId": 7,
-            "regionId": 1,
+            "commonId": 0,
+            "regionId": 0,
             "machineType": 0,
-            "ticketId": 2080,
-            "afterRating": 164,
-            "beforeRating": 164,
+            "ticketId": 0,
+            "afterRating": 0,
+            "beforeRating": 0,
             "isAllPerfect": False,
             "achievement": score['score'],
             "isNewRecord": True,
@@ -571,7 +475,6 @@ def convert_csv_to_munet(csv_scores: List[Dict[str, Any]], username: str = "Appl
     return munet_data
 
 def save_json_file(data: Dict[str, Any], output_path: str):
-    """保存JSON文件"""
     try:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
@@ -581,49 +484,36 @@ def save_json_file(data: Dict[str, Any], output_path: str):
         print(f"保存JSON文件时发生错误: {str(e)}")
         return False
 
-def main():
-    """主函数"""
-    setup_encoding()
-    
-    parser = argparse.ArgumentParser(description='将Chunithm CSV分数数据转换为MuNET Chunithm Export格式')
-    parser.add_argument('--input', '-i', default='chunithm-scores.csv', help='输入CSV文件路径 (默认: chunithm-scores.csv)')
-    parser.add_argument('--output', '-o', help='输出JSON文件路径 (默认: 自动生成)')
-    parser.add_argument('--username', '-u', default='Apple中二痴', help='用户名 (默认: Apple中二痴)')
-    parser.add_argument('--format', '-f', default='auto', choices=['auto', 'luoxue', 'shuiyu'], 
-                       help='CSV文件格式: auto(自动检测), luoxue(落雪格式), shuiyu(水鱼格式) (默认: auto)')
-    parser.add_argument('--verbose', '-v', action='store_true', help='显示详细输出')
-    
-    args = parser.parse_args()
-    
+def run_csv_converter(args):
     print("=" * 60)
     print("Chunithm CSV 到 MuNET JSON 转换工具")
     print("=" * 60)
-    
+
     # 设置输出文件路径
     if args.output:
         output_path = args.output
     else:
         timestamp = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
         output_path = f"MuNET Chunithm Export - {args.username} - {timestamp}.json"
-    
+
     print(f"输入文件: {args.input}")
     print(f"输出文件: {output_path}")
     print(f"用户名: {args.username}")
     print(f"格式: {args.format}")
     print("-" * 60)
-    
+
     try:
         # 读取CSV数据
         csv_scores = read_csv_file(args.input, args.format)
-        
+
         if not csv_scores:
             print("错误: 没有读取到有效的分数数据")
             sys.exit(1)
-        
+
         # 转换为MuNET格式
         print("正在转换为MuNET格式...")
         munet_data = convert_csv_to_munet(csv_scores, args.username)
-        
+
         # 保存为JSON文件
         if save_json_file(munet_data, output_path):
             print("-" * 60)
@@ -634,13 +524,10 @@ def main():
             print(f"包含 {len(munet_data['userPlaylogList'])} 条游玩记录")
             print(f"总分数: {munet_data['userData']['totalScore']:,}")
             print("=" * 60)
-        
+
     except KeyboardInterrupt:
         print("\n用户中断操作")
         sys.exit(1)
     except Exception as e:
         print(f"转换过程中发生错误: {str(e)}")
         sys.exit(1)
-
-if __name__ == "__main__":
-    main()
