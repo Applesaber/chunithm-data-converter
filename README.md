@@ -36,6 +36,9 @@ SHUIYU_DEVELOPER_TOKEN=         # 水鱼开发者令牌
 ## 快速开始
 
 ```bash
+# 安装依赖
+pip install -r requirements.txt
+
 # 查看帮助
 python main.py --help
 python main.py api --help
