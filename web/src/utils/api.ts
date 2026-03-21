@@ -5,20 +5,10 @@ const LXNS_BASE_URL = 'https://maimai.lxns.net/api/v0'
 const SHUIYU_BASE_URL = 'https://www.diving-fish.com/api/chunithmprober'
 
 async function fetchJson(url: string, headers: Record<string, string>): Promise<unknown> {
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: 'GET',
-      headers: { ...headers, 'Content-Type': 'application/json' },
-    })
-  } catch (e) {
-    console.warn('Direct fetch failed, falling back to allorigins proxy', e);
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-    res = await fetch(proxyUrl, {
-      method: 'GET',
-      headers: { ...headers, 'Content-Type': 'application/json' },
-    });
-  }
+  const res = await fetch(url, {
+    method: 'GET',
+    headers,
+  })
 
   if (!res.ok) {
     if (res.status === 401) throw new Error('认证失败：请检查令牌是否正确')

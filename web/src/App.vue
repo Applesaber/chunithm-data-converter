@@ -32,7 +32,7 @@ const themeOverrides: GlobalThemeOverrides = {
         </main>
 
         <footer>
-          <p>Powered by MuNET-OSS · <a href="https://github.com/MuNET-OSS/chunithm-data-converter" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+          <p>Powered by MuNET-OSS · Power By Applesaber · <a href="https://github.com/MuNET-OSS/chunithm-data-converter" target="_blank" rel="noopener noreferrer">GitHub</a></p>
         </footer>
       </n-dialog-provider>
     </n-message-provider>
