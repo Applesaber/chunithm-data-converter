@@ -16,19 +16,22 @@ const apiForm = reactive({
   lxnsToken: '',
   lxnsDeveloperToken: import.meta.env.VITE_LXNS_DEVELOPER_TOKEN || '',
   lxnsFriendCode: '',
+  shuiyuImportToken: '',
+  shuiyuDeveloperToken: import.meta.env.VITE_SHUIYU_DEVELOPER_TOKEN || '',
   shuiyuUsername: ''
 })
+
+const apiModeOptions = [
+  { label: '落雪个人 (通过 Token 获取个人数据)', value: 'lxns' },
+  { label: '落雪开发者 (通过好友码获取他人数据)', value: 'lxns-dev' },
+  { label: '水鱼个人 (通过 Import-Token 获取完整数据)', value: 'shuiyu-import' },
+  { label: '水鱼开发者 (通过 Developer-Token 获取数据)', value: 'shuiyu-dev' },
+]
 
 // CSV Form state
 const csvFormat = ref<CsvFormat>('auto')
 const csvUsername = ref('Player')
 const csvFile = ref<File | null>(null)
-
-const apiModeOptions = [
-  { label: '落雪个人 (通过 Token 获取个人数据)', value: 'lxns' },
-  { label: '落雪开发者 (通过好友码获取他人数据)', value: 'lxns-dev' },
-  { label: '水鱼查询 (通过用户名获取成绩)', value: 'shuiyu' }
-]
 
 const csvFormatOptions = [
   { label: '自动检测', value: 'auto' },
@@ -76,6 +79,8 @@ const handleApiConversion = async () => {
       lxnsToken: apiForm.lxnsToken,
       lxnsDeveloperToken: apiForm.lxnsDeveloperToken,
       lxnsFriendCode: friendCode,
+      shuiyuImportToken: apiForm.shuiyuImportToken,
+      shuiyuDeveloperToken: apiForm.shuiyuDeveloperToken,
       shuiyuUsername: apiForm.shuiyuUsername,
       onProgress: addProgress
     })
@@ -170,7 +175,8 @@ const isApiFormValid = computed(() => {
   switch (apiMode.value) {
     case 'lxns': return !!apiForm.lxnsToken
     case 'lxns-dev': return !!apiForm.lxnsDeveloperToken && !!apiForm.lxnsFriendCode
-    case 'shuiyu': return !!apiForm.shuiyuUsername
+    case 'shuiyu-import': return !!apiForm.shuiyuImportToken
+    case 'shuiyu-dev': return !!apiForm.shuiyuDeveloperToken && !!apiForm.shuiyuUsername
     default: return false
   }
 })
@@ -209,13 +215,27 @@ const isApiFormValid = computed(() => {
               </n-form-item>
             </template>
 
-            <n-form-item v-if="apiMode === 'shuiyu'" label="水鱼用户名">
+            <n-form-item v-if="apiMode === 'shuiyu-import'" label="水鱼 Import-Token">
               <n-input 
-                v-model:value="apiForm.shuiyuUsername" 
-                placeholder="输入目标玩家的水鱼用户名"
+                v-model:value="apiForm.shuiyuImportToken" 
+                type="password" 
+                show-password-on="click" 
+                placeholder="输入你的水鱼 Import-Token"
               />
             </n-form-item>
 
+            <template v-if="apiMode === 'shuiyu-dev'">
+              <n-alert v-if="!apiForm.shuiyuDeveloperToken" type="warning" class="mb-4" :show-icon="false">
+                此站点尚未配置水鱼开发者 Token 环境变量，该模式不可用。
+              </n-alert>
+              <n-form-item label="用户名">
+                <n-input 
+                  v-model:value="apiForm.shuiyuUsername" 
+                  placeholder="输入目标玩家的用户名"
+                  :disabled="!apiForm.shuiyuDeveloperToken"
+                />
+              </n-form-item>
+            </template>
 
             <n-button 
               type="primary" 

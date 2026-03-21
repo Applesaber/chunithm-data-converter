@@ -81,5 +81,5 @@ export interface Playlog {
   [key: string]: unknown
 }
 
-export type ApiMode = 'lxns' | 'lxns-dev' | 'shuiyu'
+export type ApiMode = 'lxns' | 'lxns-dev' | 'shuiyu-import' | 'shuiyu-dev'
 export type CsvFormat = 'auto' | 'lxns' | 'shuiyu'
