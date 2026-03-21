@@ -12,7 +12,7 @@
 | **本地服务器** | 运行 `web.py` 启动基于 Flask 的后端，无跨域限制 |
 | **命令行** | `python main.py <子命令> [参数]` |
 
-**在线版地址**: https://munet-oss.github.io/chunithm-data-converter/
+**快速使用**: https://munet-oss.github.io/chunithm-data-converter/
 
 ---
 
