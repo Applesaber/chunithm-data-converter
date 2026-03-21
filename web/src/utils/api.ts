@@ -3,7 +3,6 @@ import { calculateRankFromScore } from './converter'
 
 const LXNS_BASE_URL = 'https://maimai.lxns.net/api/v0'
 const SHUIYU_BASE_URL = 'https://www.diving-fish.com/api/chunithmprober'
-const CORS_PROXY = 'https://corsproxy.io/?url='
 
 async function fetchJson(url: string, headers: Record<string, string>): Promise<unknown> {
   const res = await fetch(url, {
@@ -13,7 +12,7 @@ async function fetchJson(url: string, headers: Record<string, string>): Promise<
 
   if (!res.ok) {
     if (res.status === 401) throw new Error('认证失败：请检查令牌是否正确')
-    if (res.status === 403) throw new Error('权限不足：令牌无访问权限')
+    if (res.status === 403) throw new Error('该用户已设置隐私或未同意用户协议')
     if (res.status === 429) throw new Error('请求过于频繁，请稍后重试')
     throw new Error(`HTTP ${res.status}: ${res.statusText}`)
   }
@@ -21,9 +20,23 @@ async function fetchJson(url: string, headers: Record<string, string>): Promise<
   return res.json()
 }
 
-async function fetchJsonViaProxy(url: string, headers: Record<string, string>): Promise<unknown> {
-  const proxiedUrl = `${CORS_PROXY}${encodeURIComponent(url)}`
-  return fetchJson(proxiedUrl, headers)
+async function postJson(url: string, body: Record<string, unknown>): Promise<unknown> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    if (res.status === 400) {
+      const data = await res.json().catch(() => ({})) as Record<string, unknown>
+      throw new Error((data['message'] as string) || '请求失败')
+    }
+    if (res.status === 403) throw new Error('该用户已设置隐私或未同意用户协议')
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`)
+  }
+
+  return res.json()
 }
 
 function parseLxnsPlayer(data: Record<string, unknown>): PlayerInfo {
@@ -123,8 +136,6 @@ export async function fetchFromApi(mode: ApiMode, options: {
   lxnsToken?: string
   lxnsDeveloperToken?: string
   lxnsFriendCode?: number
-  shuiyuImportToken?: string
-  shuiyuDeveloperToken?: string
   shuiyuUsername?: string
   onProgress?: (msg: string) => void
 }): Promise<ApiFetchResult> {
@@ -178,29 +189,12 @@ export async function fetchFromApi(mode: ApiMode, options: {
   }
 
   if (mode === 'shuiyu') {
-    if (!options.shuiyuImportToken) throw new Error('水鱼个人模式需要 Import-Token')
-    const headers = { 'Import-Token': options.shuiyuImportToken }
+    if (!options.shuiyuUsername) throw new Error('水鱼查询模式需要用户名')
 
-    progress('正在获取玩家成绩...')
-    const data = await fetchJsonViaProxy(`${SHUIYU_BASE_URL}/player/records`, headers) as Record<string, unknown>
-    const player = parseShuiyuPlayer(data)
-    const records = ((data['records'] as Record<string, unknown>)?.['best'] || []) as Record<string, unknown>[]
-    const scores = records.map(parseShuiyuScore)
-
-    progress(`获取到 ${scores.length} 条成绩`)
-    return { player, scores }
-  }
-
-  if (mode === 'shuiyu-dev') {
-    if (!options.shuiyuDeveloperToken) throw new Error('水鱼开发者模式需要 Developer-Token')
-    if (!options.shuiyuUsername) throw new Error('水鱼开发者模式需要用户名')
-    const headers = { 'Developer-Token': options.shuiyuDeveloperToken }
-
-    progress(`正在获取玩家 "${options.shuiyuUsername}" 的成绩...`)
-    const data = await fetchJsonViaProxy(
-      `${SHUIYU_BASE_URL}/dev/player/records?username=${encodeURIComponent(options.shuiyuUsername)}`,
-      headers,
-    ) as Record<string, unknown>
+    progress(`正在查询玩家 "${options.shuiyuUsername}" 的成绩...`)
+    const data = await postJson(`${SHUIYU_BASE_URL}/query/player`, {
+      username: options.shuiyuUsername,
+    }) as Record<string, unknown>
     const player = parseShuiyuPlayer(data)
     const records = ((data['records'] as Record<string, unknown>)?.['best'] || []) as Record<string, unknown>[]
     const scores = records.map(parseShuiyuScore)
