@@ -4,14 +4,39 @@
 
 将 Chunithm 成绩数据转换为 MuNET 可导入的 JSON 文件。
 
-统一入口：`python main.py <子命令> [参数]`
+提供两种使用方式：
 
-| 子命令 | 数据来源 |
-|--------|----------|
-| `api` | 从 [落雪](https://maimai.lxns.net/) / [水鱼](https://maimai.diving-fish.com/) API 在线获取 |
-| `csv` | 从本地 CSV 文件转换（落雪/水鱼导出） |
+| 方式 | 说明 |
+|------|------|
+| **在线版** | 打开网页即用，支持 API 获取 / CSV 上传 / 成绩可视化 |
+| **命令行** | `python main.py <子命令> [参数]` |
+
+**在线版地址**: https://munet-oss.github.io/chunithm-data-converter/
 
 ---
+
+## 在线版 (Web)
+
+无需安装任何依赖，浏览器打开即可使用。
+
+### 功能
+
+- **在线转换** — 输入落雪/水鱼令牌直接获取成绩并转换，或上传 CSV 文件转换
+- **成绩可视化** — 上传 MuNET JSON 查看玩家信息、成绩统计图表、曲目详情
+
+### 本地开发
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+构建产物输出到 `web/dist/`，推送到 `master` 分支后 GitHub Actions 自动部署到 GitHub Pages。
+
+---
+
+## 命令行版 (CLI)
 
 ## 环境配置
 
@@ -26,9 +51,9 @@ SHUIYU_DEVELOPER_TOKEN=         # 水鱼开发者令牌
 
 | 令牌 | 获取方式 |
 |------|----------|
-| 落雪个人令牌 | 登录 [落雪](https://maimai.lxns.net/) → 个人设置，通过 `--lxns-token` 传入 |
+| 落雪个人令牌 | 登录 [落雪](https://maimai.lxns.net/) → 账号详情 第三方应用 个人 API 密钥 → 通过 `--lxns-token` 传入 |
 | `LXNS_DEVELOPER_TOKEN` | 在落雪平台申请开发者权限 |
-| 水鱼 Import-Token | 登录 [水鱼查分器](https://www.diving-fish.com/maimaidx/prober/) → 编辑个人资料 → 生成，通过 `--shuiyu-import-token` 传入 |
+| 水鱼 Import-Token | 登录 [水鱼查分器](https://www.diving-fish.com/maimaidx/prober/) → 编辑个人资料 → 生成 “成绩导入 Token” → 通过 `--lxns-token` 传入 |
 | `SHUIYU_DEVELOPER_TOKEN` | 在水鱼查分器申请开发者权限 |
 
 ---

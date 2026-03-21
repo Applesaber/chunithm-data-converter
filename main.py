@@ -44,7 +44,7 @@ def main():
     api_parser.add_argument("--test", action="store_true",
                             help="测试模式，只处理前 10 条成绩")
 
-    lxns = api_parser.add_argument_group("落雪 API (lxns.net)")
+    lxns = api_parser.add_argument_group("落雪 API (maimai.lxns.net)")
     lxns.add_argument("--lxns-token", default=None,
                       metavar="TOKEN",
                       help="个人令牌，lxns 模式必填")
