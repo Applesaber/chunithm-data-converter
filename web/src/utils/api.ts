@@ -4,29 +4,21 @@ import { calculateRankFromScore } from './converter'
 const LXNS_BASE_URL = 'https://maimai.lxns.net/api/v0'
 const SHUIYU_BASE_URL = 'https://www.diving-fish.com/api/chunithmprober'
 
-const DEFAULT_CORS_PROXY = 'https://corsproxy.io/?url='
-
-let corsProxy = DEFAULT_CORS_PROXY
-
-export function setCorsProxy(proxy: string) {
-  corsProxy = proxy
-}
-
-export function getCorsProxy(): string {
-  return corsProxy
-}
-
-function proxyUrl(url: string): string {
-  if (!corsProxy) return url
-  return `${corsProxy}${encodeURIComponent(url)}`
-}
-
 async function fetchJson(url: string, headers: Record<string, string>): Promise<unknown> {
-  const proxied = proxyUrl(url)
-  const res = await fetch(proxied, {
-    method: 'GET',
-    headers: { ...headers, 'Content-Type': 'application/json' },
-  })
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: 'GET',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+    })
+  } catch (e) {
+    console.warn('Direct fetch failed, falling back to allorigins proxy', e);
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    res = await fetch(proxyUrl, {
+      method: 'GET',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+    });
+  }
 
   if (!res.ok) {
     if (res.status === 401) throw new Error('认证失败：请检查令牌是否正确')

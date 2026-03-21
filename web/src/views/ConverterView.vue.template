@@ -1,0 +1,191 @@
+<template>
+  <div class="converter-container">
+    <n-card class="mb-6" style="border-radius: var(--radius-lg); background-color: var(--card-bg);">
+      <n-tabs v-model:value="activeTab" type="segment" animated size="large">
+        <n-tab-pane name="api" tab="API 模式">
+          <!-- API Mode Form -->
+          <n-form :disabled="isConverting" size="large" label-placement="top">
+            <n-form-item label="选择模式">
+              <n-select v-model:value="apiMode" :options="apiModeOptions" />
+            </n-form-item>
+
+            <n-form-item v-if="apiMode === 'lxns'" label="落雪个人令牌">
+              <n-input 
+                v-model:value="apiForm.lxnsToken" 
+                type="password" 
+                show-password-on="click" 
+                placeholder="输入你的落雪个人 Token"
+              />
+            </n-form-item>
+
+            <template v-if="apiMode === 'lxns-dev'">
+              <n-form-item label="落雪开发者令牌">
+                <n-input 
+                  v-model:value="apiForm.lxnsDeveloperToken" 
+                  type="password" 
+                  show-password-on="click" 
+                  placeholder="输入你的开发者 Token"
+                />
+              </n-form-item>
+              <n-form-item label="好友码">
+                <n-input 
+                  v-model:value="apiForm.lxnsFriendCode" 
+                  placeholder="输入目标玩家的好友码"
+                />
+              </n-form-item>
+            </template>
+
+            <n-form-item v-if="apiMode === 'shuiyu'" label="水鱼 Import-Token">
+              <n-input 
+                v-model:value="apiForm.shuiyuImportToken" 
+                type="password" 
+                show-password-on="click" 
+                placeholder="输入你的水鱼 Import-Token"
+              />
+            </n-form-item>
+
+            <template v-if="apiMode === 'shuiyu-dev'">
+              <n-form-item label="水鱼 Developer-Token">
+                <n-input 
+                  v-model:value="apiForm.shuiyuDeveloperToken" 
+                  type="password" 
+                  show-password-on="click" 
+                  placeholder="输入你的开发者 Token"
+                />
+              </n-form-item>
+              <n-form-item label="用户名">
+                <n-input 
+                  v-model:value="apiForm.shuiyuUsername" 
+                  placeholder="输入目标玩家的用户名"
+                />
+              </n-form-item>
+            </template>
+
+            <!-- Advanced settings -->
+            <div class="mt-4 mb-6">
+              <n-button secondary block @click="showAdvanced = !showAdvanced" :disabled="isConverting">
+                {{ showAdvanced ? '隐藏高级设置' : '显示高级设置 (CORS 代理)' }}
+              </n-button>
+              
+              <n-collapse-transition :show="showAdvanced">
+                <n-form-item label="CORS 代理 (解决浏览器跨域问题)" class="mt-4">
+                  <n-input 
+                    v-model:value="apiForm.corsProxy" 
+                    placeholder="如 https://corsproxy.io/?url="
+                  />
+                </n-form-item>
+              </n-collapse-transition>
+            </div>
+
+            <n-button 
+              type="primary" 
+              block 
+              size="large"
+              :loading="isConverting"
+              :disabled="!isApiFormValid"
+              @click="handleApiConversion"
+            >
+              开始转换
+            </n-button>
+          </n-form>
+        </n-tab-pane>
+
+        <n-tab-pane name="csv" tab="CSV 上传">
+          <!-- CSV Mode Form -->
+          <n-form :disabled="isConverting" size="large" label-placement="top">
+            <n-form-item label="上传 CSV 文件">
+              <n-upload
+                :default-upload="false"
+                :show-file-list="false"
+                accept=".csv"
+                @change="onUploadChange"
+              >
+                <n-upload-dragger>
+                  <div v-if="!csvFile" style="padding: 24px">
+                    <n-text style="font-size: 16px">
+                      点击选择或拖拽 .csv 文件到此处
+                    </n-text>
+                    <n-p depth="3" style="margin: 8px 0 0 0">
+                      支持落雪或水鱼导出的成绩 CSV 文件
+                    </n-p>
+                  </div>
+                  <div v-else style="padding: 24px">
+                    <n-text style="color: var(--primary-color); font-weight: bold; font-size: 16px">
+                      已选择: {{ csvFile.name }}
+                    </n-text>
+                    <n-p depth="3" style="margin: 8px 0 0 0">
+                      点击或拖拽可更换文件
+                    </n-p>
+                  </div>
+                </n-upload-dragger>
+              </n-upload>
+            </n-form-item>
+
+            <n-form-item label="格式">
+              <n-select v-model:value="csvFormat" :options="csvFormatOptions" />
+            </n-form-item>
+
+            <n-form-item label="用户名 (当 CSV 不包含用户名时使用)">
+              <n-input 
+                v-model:value="csvUsername" 
+                placeholder="Player"
+              />
+            </n-form-item>
+
+            <n-button 
+              type="primary" 
+              block 
+              size="large"
+              class="mt-6"
+              :loading="isConverting"
+              :disabled="!csvFile"
+              @click="handleCsvConversion"
+            >
+              开始转换
+            </n-button>
+          </n-form>
+        </n-tab-pane>
+      </n-tabs>
+
+      <!-- Error Message -->
+      <n-alert v-if="errorMessage" title="错误" type="error" class="mt-6">
+        {{ errorMessage }}
+      </n-alert>
+    </n-card>
+
+    <!-- Progress Output -->
+    <n-card v-if="progressMessages.length > 0" class="mb-6" style="border-radius: var(--radius-lg); background-color: var(--bg-color);" title="运行日志" size="small">
+      <div style="font-family: monospace; font-size: 0.875rem; max-height: 200px; overflow-y: auto; color: var(--text-secondary)">
+        <div v-for="(msg, i) in progressMessages" :key="i">[{{ new Date().toLocaleTimeString() }}] {{ msg }}</div>
+      </div>
+    </n-card>
+
+    <!-- Success Output -->
+    <n-card v-if="conversionResult" style="border-radius: var(--radius-lg); border-color: var(--success-color); box-shadow: 0 0 15px var(--success-bg)">
+      <template #header>
+        <span style="color: var(--success-color);">转换成功！</span>
+      </template>
+      
+      <n-grid x-gap="12" :cols="3" class="mb-6 text-center">
+        <n-gi>
+          <n-statistic label="成绩数量" :value="resultStats.scores" />
+        </n-gi>
+        <n-gi>
+          <n-statistic label="音乐详情数" :value="resultStats.musicDetails" />
+        </n-gi>
+        <n-gi>
+          <n-statistic label="游玩记录数" :value="resultStats.playlogs" />
+        </n-gi>
+      </n-grid>
+
+      <n-space justify="center" size="large">
+        <n-button type="primary" size="large" @click="downloadJson">
+          下载 JSON 文件
+        </n-button>
+        <n-button secondary size="large" @click="viewVisualizer">
+          查看可视化分析
+        </n-button>
+      </n-space>
+    </n-card>
+  </div>
+</template>

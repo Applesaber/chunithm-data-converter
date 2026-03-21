@@ -1,10 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Data files
 *.csv
 *.json
-.env
-__pycache__/
-
 !web/package.json
 !web/package-lock.json
 !web/tsconfig.json
 !web/tsconfig.app.json
 !web/tsconfig.node.json
+
+# Node
+node_modules/
+web/dist/
+web/auto-imports.d.ts
+web/components.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Sisyphus
+.sisyphus/
