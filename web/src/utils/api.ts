@@ -3,6 +3,7 @@ import { calculateRankFromScore } from './converter'
 
 const LXNS_BASE_URL = 'https://maimai.lxns.net/api/v0'
 const SHUIYU_BASE_URL = 'https://www.diving-fish.com/api/chunithmprober'
+const CORS_PROXY = 'https://corsproxy.io/?url='
 
 async function fetchJson(url: string, headers: Record<string, string>): Promise<unknown> {
   const res = await fetch(url, {
@@ -18,6 +19,11 @@ async function fetchJson(url: string, headers: Record<string, string>): Promise<
   }
 
   return res.json()
+}
+
+async function fetchJsonViaProxy(url: string, headers: Record<string, string>): Promise<unknown> {
+  const proxiedUrl = `${CORS_PROXY}${encodeURIComponent(url)}`
+  return fetchJson(proxiedUrl, headers)
 }
 
 function parseLxnsPlayer(data: Record<string, unknown>): PlayerInfo {
@@ -176,7 +182,7 @@ export async function fetchFromApi(mode: ApiMode, options: {
     const headers = { 'Import-Token': options.shuiyuImportToken }
 
     progress('正在获取玩家成绩...')
-    const data = await fetchJson(`${SHUIYU_BASE_URL}/player/records`, headers) as Record<string, unknown>
+    const data = await fetchJsonViaProxy(`${SHUIYU_BASE_URL}/player/records`, headers) as Record<string, unknown>
     const player = parseShuiyuPlayer(data)
     const records = ((data['records'] as Record<string, unknown>)?.['best'] || []) as Record<string, unknown>[]
     const scores = records.map(parseShuiyuScore)
@@ -191,7 +197,7 @@ export async function fetchFromApi(mode: ApiMode, options: {
     const headers = { 'Developer-Token': options.shuiyuDeveloperToken }
 
     progress(`正在获取玩家 "${options.shuiyuUsername}" 的成绩...`)
-    const data = await fetchJson(
+    const data = await fetchJsonViaProxy(
       `${SHUIYU_BASE_URL}/dev/player/records?username=${encodeURIComponent(options.shuiyuUsername)}`,
       headers,
     ) as Record<string, unknown>

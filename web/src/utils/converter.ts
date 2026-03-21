@@ -248,23 +248,13 @@ export function convertScoresToMunet(
     const score = scores[i]
     if (!score.playTime) continue
 
-    let playDate = score.playTime
-    if (playDate.includes(' ')) {
-      const [datePart, timePart] = playDate.split(' ', 2)
-      const parts = timePart.split(':')
-      const fullTime = parts.length === 2 ? `${timePart}:00` : timePart
-      playDate = `${datePart}T${fullTime}`
-    } else {
-      playDate = `${playDate}T00:00:00`
-    }
-
     playlogs.push({
       romVersion: '',
       orderId: i,
       sortNumber: 0,
       placeId: 0,
-      playDate: playDate.split('T')[0] + 'T00:00:00',
-      userPlayDate: playDate,
+      playDate: score.playTime,
+      userPlayDate: score.playTime,
       musicId: score.recordId,
       level: score.levelIndex,
       customId: 0,
