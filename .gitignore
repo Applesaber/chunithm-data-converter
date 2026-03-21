@@ -11,6 +11,8 @@ __pycache__/
 !web/tsconfig.json
 !web/tsconfig.app.json
 !web/tsconfig.node.json
+!worker/package.json
+!worker/tsconfig.json
 
 # Node
 node_modules/
