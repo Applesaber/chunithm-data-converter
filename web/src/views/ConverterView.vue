@@ -184,7 +184,7 @@ const isApiFormValid = computed(() => {
 
 <template>
   <div class="converter-container">
-    <n-card class="mb-6" style="border-radius: var(--radius-lg); background-color: var(--card-bg);">
+    <n-card class="mb-6 acrylic-card" style="border-radius: var(--radius-lg);">
       <n-tabs v-model:value="activeTab" type="segment" animated size="large">
         <n-tab-pane name="api" tab="API 模式">
           <!-- API Mode Form -->
@@ -314,14 +314,14 @@ const isApiFormValid = computed(() => {
     </n-card>
 
     <!-- Progress Output -->
-    <n-card v-if="progressMessages.length > 0" class="mb-6" style="border-radius: var(--radius-lg); background-color: var(--bg-color);" title="运行日志" size="small">
+    <n-card v-if="progressMessages.length > 0" class="mb-6 acrylic-card" style="border-radius: var(--radius-lg);" title="运行日志" size="small">
       <div style="font-family: monospace; font-size: 0.875rem; max-height: 200px; overflow-y: auto; color: var(--text-secondary)">
         <div v-for="(msg, i) in progressMessages" :key="i">[{{ new Date().toLocaleTimeString() }}] {{ msg }}</div>
       </div>
     </n-card>
 
     <!-- Success Output -->
-    <n-card v-if="conversionResult" style="border-radius: var(--radius-lg); border-color: var(--success-color); box-shadow: 0 0 15px var(--success-bg)">
+    <n-card v-if="conversionResult" class="acrylic-card success-card" style="border-radius: var(--radius-lg); border-color: var(--success-color); box-shadow: 0 0 15px var(--success-bg)">
       <template #header>
         <span style="color: var(--success-color);">转换成功！</span>
       </template>

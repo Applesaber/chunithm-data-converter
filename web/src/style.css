@@ -1,24 +1,24 @@
 :root {
   --bg-color: #f8fafc;
-  --card-bg: #ffffff;
-  --border-color: #e2e8f0;
-  --text-primary: #0f172a;
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --border-color: rgba(255, 255, 255, 0.5);
+  --text-primary: #1e293b;
   --text-secondary: #475569;
   --text-muted: #94a3b8;
   
-  --primary-gradient: #18a058;
-  --primary-gradient-hover: #36ad6a;
-  --primary-color: #18a058;
-  --accent-glow: rgba(24, 160, 88, 0.15);
+  --primary-gradient: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  --primary-gradient-hover: linear-gradient(135deg, #8a73be 0%, #e2a9d2 100%);
+  --primary-color: #a18cd1;
+  --accent-glow: rgba(161, 140, 209, 0.2);
   
   --error-color: #d03050;
-  --error-bg: rgba(208, 48, 80, 0.05);
+  --error-bg: rgba(208, 48, 80, 0.1);
   --success-color: #18a058;
-  --success-bg: rgba(24, 160, 88, 0.05);
+  --success-bg: rgba(24, 160, 88, 0.1);
   
-  --radius-sm: 0.375rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
   --radius-full: 9999px;
   
   --spacing-1: 0.25rem;
@@ -28,6 +28,9 @@
   --spacing-5: 1.25rem;
   --spacing-6: 1.5rem;
   --spacing-8: 2rem;
+  
+  --backdrop-blur: blur(20px);
+  --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
   
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
 }
@@ -41,6 +44,12 @@
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-color);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(224, 195, 252, 0.4) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(142, 197, 252, 0.4) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(224, 195, 252, 0.4) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(142, 197, 252, 0.4) 0px, transparent 50%);
+  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -65,12 +74,14 @@ body {
 }
 
 header {
-  background-color: var(--card-bg);
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
 }
 
 .nav-container {
@@ -110,7 +121,7 @@ header {
 
 .nav-link:hover {
   color: var(--text-primary);
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.4);
 }
 
 .nav-link.router-link-active {
@@ -125,7 +136,9 @@ footer {
   color: var(--text-muted);
   font-size: 0.875rem;
   border-top: 1px solid var(--border-color);
-  background-color: var(--card-bg);
+  background-color: rgba(255, 255, 255, 0.4);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
 }
 
 footer a {
@@ -148,19 +161,20 @@ p {
   margin-bottom: var(--spacing-4);
 }
 
-/* Components */
-.card {
-  background-color: var(--card-bg);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  padding: var(--spacing-6);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* Glassmorphism Cards */
+.card, .n-card {
+  background-color: var(--card-bg) !important;
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--card-shadow) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.card:hover {
-  box-shadow: 0 10px 15px -3px var(--accent-glow), 0 4px 6px -2px var(--accent-glow);
-  border-color: rgba(139, 92, 246, 0.3);
+.card:hover, .n-card:hover {
+  box-shadow: 0 10px 25px -3px var(--accent-glow), 0 4px 10px -2px var(--accent-glow) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
 }
 
 .btn {
@@ -196,13 +210,14 @@ p {
 }
 
 .btn-secondary {
-  background-color: transparent;
+  background-color: rgba(255, 255, 255, 0.5);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
+  backdrop-filter: var(--backdrop-blur);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: var(--border-color);
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 .btn-block {
@@ -229,9 +244,10 @@ p {
   background-color: var(--error-bg);
   padding: var(--spacing-3);
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(208, 48, 80, 0.2);
   margin-top: var(--spacing-4);
   font-size: 0.875rem;
+  backdrop-filter: var(--backdrop-blur);
 }
 
 .success-message {
@@ -239,30 +255,35 @@ p {
   background-color: var(--success-bg);
   padding: var(--spacing-4);
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(24, 160, 88, 0.2);
   margin-top: var(--spacing-4);
+  backdrop-filter: var(--backdrop-blur);
 }
 
 /* File Upload Area */
 .dropzone {
   border: 2px dashed var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-8);
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.3);
+  backdrop-filter: var(--backdrop-blur);
 }
 
 .dropzone:hover, .dropzone.drag-active {
   border-color: var(--primary-color);
-  background-color: var(--accent-glow);
+  background-color: rgba(255, 255, 255, 0.6);
 }
 
 /* Data Table */
 .table-container {
   width: 100%;
   overflow-x: auto;
+  border-radius: var(--radius-md);
+  background-color: var(--card-bg);
+  backdrop-filter: var(--backdrop-blur);
 }
 
 table {
@@ -286,11 +307,11 @@ th {
 
 th:hover {
   color: var(--text-primary);
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 tr:hover td {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.4);
 }
 
 /* Stats Cards Grid */
@@ -303,16 +324,20 @@ tr:hover td {
 
 .stat-card {
   background-color: var(--card-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-6) var(--spacing-4);
   text-align: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--card-shadow);
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px var(--accent-glow);
+  box-shadow: 0 10px 25px var(--accent-glow);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
 .stat-value {
@@ -320,11 +345,16 @@ tr:hover td {
   font-weight: 700;
   line-height: 1;
   margin-bottom: var(--spacing-2);
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .stat-label {
   font-size: 0.875rem;
   color: var(--text-muted);
+  font-weight: 500;
 }
 
 .charts-grid {
@@ -341,55 +371,60 @@ tr:hover td {
 
 .badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 4px 10px;
   border-radius: var(--radius-full);
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
+  backdrop-filter: var(--backdrop-blur);
 }
 
 .badge-purple {
-  background-color: rgba(139, 92, 246, 0.2);
-  color: #a78bfa;
+  background-color: rgba(161, 140, 209, 0.2);
+  color: #8a73be;
+  border: 1px solid rgba(161, 140, 209, 0.3);
 }
 
 .badge-green {
-  background-color: rgba(16, 185, 129, 0.2);
-  color: #34d399;
+  background-color: rgba(24, 160, 88, 0.2);
+  color: #18a058;
+  border: 1px solid rgba(24, 160, 88, 0.3);
 }
 
 .badge-red {
-  background-color: rgba(239, 68, 68, 0.2);
-  color: #f87171;
+  background-color: rgba(208, 48, 80, 0.2);
+  color: #d03050;
+  border: 1px solid rgba(208, 48, 80, 0.3);
 }
 
 .badge-yellow {
-  background-color: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .level-bas {
-  background-color: rgba(16, 185, 129, 0.2);
+  background-color: rgba(16, 185, 129, 0.15);
   color: #10b981;
 }
 
 .level-adv {
-  background-color: rgba(245, 158, 11, 0.2);
+  background-color: rgba(245, 158, 11, 0.15);
   color: #f59e0b;
 }
 
 .level-exp {
-  background-color: rgba(239, 68, 68, 0.2);
+  background-color: rgba(239, 68, 68, 0.15);
   color: #ef4444;
 }
 
 .level-mas {
-  background-color: rgba(168, 85, 247, 0.2);
+  background-color: rgba(168, 85, 247, 0.15);
   color: #a855f7;
 }
 
 .level-ult {
-  background-color: rgba(100, 116, 139, 0.2);
+  background-color: rgba(100, 116, 139, 0.15);
   color: #94a3b8;
 }
 

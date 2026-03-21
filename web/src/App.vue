@@ -5,10 +5,23 @@ import 'vfonts/Lato.css'
 
 const themeOverrides: GlobalThemeOverrides = {
   common: {
-    primaryColor: '#18a058',
-    primaryColorHover: '#36ad6a',
-    primaryColorPressed: '#0c7a43',
-    primaryColorSuppl: '#36ad6a'
+    primaryColor: '#a18cd1',
+    primaryColorHover: '#8a73be',
+    primaryColorPressed: '#7057a6',
+    primaryColorSuppl: '#e2a9d2',
+    bodyColor: 'transparent',
+    cardColor: 'rgba(255, 255, 255, 0.7)',
+    modalColor: 'rgba(255, 255, 255, 0.8)',
+    popoverColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: '16px'
+  },
+  Card: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    colorModal: 'rgba(255, 255, 255, 0.8)',
+    colorTarget: 'rgba(255, 255, 255, 0.7)',
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: '16px',
+    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.05)'
   }
 }
 </script>
@@ -19,7 +32,7 @@ const themeOverrides: GlobalThemeOverrides = {
       <n-dialog-provider>
         <header>
           <div class="nav-container">
-            <router-link to="/" class="brand">Chunithm → MuNET</router-link>
+            <router-link to="/" class="brand">水鱼/落雪导入MuNET</router-link>
             <nav class="nav-links">
               <router-link to="/" class="nav-link">转换器</router-link>
               <router-link to="/visualizer" class="nav-link">可视化</router-link>
