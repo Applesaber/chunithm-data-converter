@@ -2,3 +2,9 @@
 *.json
 .env
 __pycache__/
+
+!web/package.json
+!web/package-lock.json
+!web/tsconfig.json
+!web/tsconfig.app.json
+!web/tsconfig.node.json
